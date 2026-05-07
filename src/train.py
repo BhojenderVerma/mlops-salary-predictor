@@ -1,28 +1,51 @@
 import pandas as pd
-from sklearn.linear_model import LinearRegression
+from sklearn.linear_model import LinearRegression, Ridge
+from sklearn.metrics import mean_squared_error
 import joblib
 import os
+import mlflow
+import mlflow.sklearn
 
-# 1. Load data
+# 🔥 CHANGE MODEL TYPE HERE
+MODEL_TYPE = "linear"   # "linear" or "ridge"
+
+# Load data
 data = pd.read_csv("data/salary_data.csv")
+X = data[["experience"]]
+y = data["salary"]
 
-# 2. Split into X (input) and y (output)
-X = data[["experience"]]   # feature
-y = data["salary"]         # target
+mlflow.set_experiment("salary-predictor")
 
-# 3. Create model
-model = LinearRegression()
+with mlflow.start_run():
 
-# 4. Train model
-model.fit(X, y)
+    # Select model
+    if MODEL_TYPE == "linear":
+        model = LinearRegression()
+        mlflow.log_param("model_type", "LinearRegression")
 
-# 5. Print model details
-print("Model trained successfully!")
-print(f"Coefficient: {model.coef_[0]}")
-print(f"Intercept: {model.intercept_}")
+    elif MODEL_TYPE == "ridge":
+        model = Ridge(alpha=1.0)
+        mlflow.log_param("model_type", "Ridge")
+        mlflow.log_param("alpha", 1.0)
 
-# 6. Save model
-os.makedirs("models", exist_ok=True)
-joblib.dump(model, "models/model.pkl")
+    # Train
+    model.fit(X, y)
 
-print("Model saved at models/model.pkl")
+    # Predict
+    predictions = model.predict(X)
+
+    # Metric
+    mse = mean_squared_error(y, predictions)
+    mlflow.log_metric("mse", mse)
+
+    print(f"Model: {MODEL_TYPE}")
+    print(f"MSE: {mse}")
+
+    # Save model
+    os.makedirs("models", exist_ok=True)
+    joblib.dump(model, "models/model.pkl")
+
+    # Log model
+    mlflow.sklearn.log_model(model, "model")
+
+print("Done 🚀")
