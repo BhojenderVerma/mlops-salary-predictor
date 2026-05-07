@@ -6,8 +6,10 @@ import os
 # Initialize app
 app = Flask(__name__)
 
-# Load trained model
-model = joblib.load("models/model.pkl")
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+model_path = os.path.join(BASE_DIR, "..", "models", "model.pkl")
+
+model = joblib.load(model_path)
 
 # Home route
 @app.route("/", methods=["GET"])

@@ -9,9 +9,7 @@ __pycache__/
 mlruns/
 mlflow.db
 
-# Models
-models/
-*.pkl
+
 
 # DVC cache
 .dvc/cache/
